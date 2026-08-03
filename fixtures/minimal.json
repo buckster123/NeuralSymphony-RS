@@ -1,0 +1,7 @@
+{
+  "memories": [
+    { "id": "m1", "memory_type": "semantic", "salience": 0.5, "created_at": 1785000000, "tags": ["seed"], "links": [] },
+    { "id": "m2", "memory_type": "episodic", "salience": 0.8, "emotional_valence": 0.6, "emotional_intensity": 0.4, "created_at": 1785000600, "tags": ["seed"], "links": ["m1"] },
+    { "id": "m3", "memory_type": "procedural", "salience": 0.9, "emotional_valence": -0.7, "emotional_intensity": 0.8, "created_at": 1785001200, "tags": [], "links": [] }
+  ]
+}

@@ -1,0 +1,10 @@
+[package]
+name = "ns-midi"
+description = "NeuralSymphony MIDI renderer: Piece IR → byte-deterministic SMF."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ns-core = { path = "../ns-core" }
+midly = { workspace = true }

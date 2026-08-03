@@ -1,0 +1,18 @@
+{
+  "memories": [
+    { "id": "a0-coffee-plan", "memory_type": "working", "salience": 0.3, "emotional_valence": 0.5, "emotional_intensity": 0.1, "created_at": 1785106800, "tags": ["ritual"], "links": ["a1-colony-idea"] },
+    { "id": "a1-colony-idea", "memory_type": "episodic", "salience": 0.9, "emotional_valence": 0.6, "emotional_intensity": 0.5, "created_at": 1785110400, "tags": ["prefrontal", "colony"], "links": ["a2-port-survey"] },
+    { "id": "a2-port-survey", "memory_type": "semantic", "salience": 0.7, "emotional_valence": 0.2, "emotional_intensity": 0.3, "created_at": 1785114000, "tags": ["colony"], "links": ["a1-colony-idea", "a3-apexrouter-surprise"] },
+    { "id": "a3-apexrouter-surprise", "memory_type": "episodic", "salience": 0.8, "emotional_valence": 0.05, "emotional_intensity": 0.9, "created_at": 1785117600, "tags": ["colony", "bug"], "links": ["a2-port-survey", "a4-loopback-invariant"] },
+    { "id": "a4-loopback-invariant", "memory_type": "semantic", "salience": 0.6, "emotional_valence": 0.3, "emotional_intensity": 0.2, "created_at": 1785121200, "tags": ["prefrontal"], "links": ["a3-apexrouter-surprise", "a5-ws-delta-fix"] },
+    { "id": "a5-ws-delta-fix", "memory_type": "procedural", "salience": 0.75, "emotional_valence": -0.2, "emotional_intensity": 0.6, "created_at": 1785124800, "tags": ["bug"], "links": ["a4-loopback-invariant"], "episode_id": "ep-ship" },
+    { "id": "a6-render-test", "memory_type": "procedural", "salience": 0.65, "emotional_valence": 0.4, "emotional_intensity": 0.4, "created_at": 1785128400, "tags": ["bug"], "links": ["a4-loopback-invariant"], "episode_id": "ep-ship" },
+    { "id": "a7-shipped-panel", "memory_type": "episodic", "salience": 1.0, "emotional_valence": 0.9, "emotional_intensity": 0.7, "created_at": 1785132000, "tags": ["colony", "ship"], "links": ["a6-render-test"], "episode_id": "ep-ship" },
+    { "id": "iso-3am-thought", "memory_type": "working", "salience": 0.4, "emotional_valence": -0.6, "emotional_intensity": 0.5, "created_at": 1785160400, "tags": [], "links": [] },
+    { "id": "b1-qwen-names-it", "memory_type": "episodic", "salience": 0.95, "emotional_valence": 0.8, "emotional_intensity": 0.8, "created_at": 1785200400, "tags": ["music", "garden"], "links": ["b2-prototype-review"] },
+    { "id": "b2-prototype-review", "memory_type": "semantic", "salience": 0.6, "emotional_valence": -0.1, "emotional_intensity": 0.3, "created_at": 1785204000, "tags": ["music"], "links": ["b1-qwen-names-it", "b3-enthea-fusion"] },
+    { "id": "b3-enthea-fusion", "memory_type": "episodic", "salience": 1.0, "emotional_valence": 0.95, "emotional_intensity": 0.9, "created_at": 1785207600, "tags": ["music", "enthea"], "links": ["b2-prototype-review"] },
+    { "id": "b4-score-protocol", "memory_type": "working", "salience": 0.7, "emotional_valence": 0.3, "emotional_intensity": 0.4, "created_at": 1785211200, "tags": ["music"], "links": ["b3-enthea-fusion"] },
+    { "id": "b5-kiosk-dream", "memory_type": "episodic", "salience": 0.5, "emotional_valence": 0.7, "emotional_intensity": 0.6, "created_at": 1785214800, "tags": ["enthea"], "links": ["b4-score-protocol"] }
+  ]
+}
