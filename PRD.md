@@ -85,6 +85,10 @@ provisioned sibling.
   ffmpeg, no models), full tracks via Sonus-RS. **Viz is a client, not a component**:
   ApexOS kiosk later; and the sleeper pairing — `imaginarium_craft_video` + memory
   imagery + this soundtrack = **the auto-generated music video of your week**.
+  *Amendment 2026-08-04: the designated viz client is **Enthea-RS**, fed by a
+  versioned semantic **score stream** (`score_v0`, NDJSON over socket / `.score`
+  files) emitted at M2 — see `docs/ideas/enthea-fusion.md`. The stream crosses a
+  process boundary, so licenses stay put on both sides.*
 
 Rust workspace: `ns-core` (mapping, pure, no I/O), `ns-midi`, `ns-synth` (fundsp),
 `ns-cerebro` (client), `ns-sonus` (bridge), `ns-cli` (binary: CLI+MCP+API). House rules
@@ -97,9 +101,9 @@ graphs, nothing writes into repo dirs at runtime.
 |---|---|---|
 | **M0** | `ns-core` mapping_v1 + MIDI out + CLI compose from a JSON fixture graph | Golden MIDI files in CI; a fixture week renders identically forever |
 | **M1** | Cerebro client + modes (window / episode / thread / dream) | Compose from a live cerebro; the dream-suite morning track |
-| **M2** | fundsp WAV preview + API + MCP | An agent (this one, with its own cerebro) composes and plays back its week |
+| **M2** | fundsp WAV preview + API + MCP + **score-stream emitter** (`score_v0`) | An agent (this one, with its own cerebro) composes and plays back its week; Enthea renders it live from `--score` |
 | **M3** | Sonus bridge (Dream voice) + opt-in taste write-back | A produced track from a memory cluster; feedback visibly re-weights the next composition |
-| **M4** | Live mode (`/ws` ambient from activation heatmap) + Imaginarium video pairing | The week-in-review music video, generated end to end in the garden |
+| **M4** | Live mode (`/ws` + `heat` events from the activation heatmap) + Imaginarium video pairing | The week-in-review music video, generated end to end in the garden; the ambient "state of the apex" screen on the ApexOS kiosk |
 
 ## 7. Non-goals (v1)
 
@@ -123,5 +127,7 @@ Not an ApexOS plugin *first* — standalone first, assimilation second (the Occi
 
 Idea and name: Qwen3.5-122B-A10B, first hour of operation, R4 campaign box (2× modded
 RTX 4090, Guangdong), 2026-08-01 — see `ApexRouter-RS/docs/GARDEN-RUNS.md` §R4.
-Prototype preserved in `prototype/` as-built (buggy, unrun, historically significant).
-Expanded to this PRD the same night by Andre + Claude (Fable 5).
+Prototype preserved in `prototype/` as-built (buggy, unrun, historically significant);
+reviewed honestly in `docs/prototype-review.md`. Expanded to this PRD the same night by
+Andre + Claude (Fable 5). Enthea fusion direction agreed 2026-08-04
+(`docs/ideas/enthea-fusion.md`).
