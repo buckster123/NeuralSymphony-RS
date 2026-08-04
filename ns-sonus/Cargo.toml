@@ -1,0 +1,12 @@
+[package]
+name = "ns-sonus"
+description = "The Dream voice: distill a composition's structure into a produced track via Sonus-RS (Suno). Costs real credits; never auto-fires."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ns-core = { path = "../ns-core" }
+ns-mcp = { path = "../ns-mcp" }
+serde = { workspace = true }
+serde_json = { workspace = true }

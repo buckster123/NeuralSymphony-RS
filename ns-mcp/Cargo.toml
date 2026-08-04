@@ -1,0 +1,9 @@
+[package]
+name = "ns-mcp"
+description = "Minimal MCP stdio client (newline JSON-RPC), shared by every NeuralSymphony bridge. No SDK dependency, child killed on drop."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde_json = { workspace = true }

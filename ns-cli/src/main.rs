@@ -61,6 +61,47 @@ enum Command {
         #[arg(long)]
         emit_score: Option<PathBuf>,
     },
+    /// Dream voice: a produced track via Sonus/Suno — SPENDS CREDITS
+    #[command(group(ArgGroup::new("source").required(true)
+        .args(["fixture", "window", "episode", "thread", "everything"])))]
+    Produce {
+        #[arg(long)]
+        fixture: Option<PathBuf>,
+        #[arg(long)]
+        window: Option<String>,
+        #[arg(long)]
+        episode: Option<String>,
+        #[arg(long)]
+        thread: Option<String>,
+        #[arg(long)]
+        everything: bool,
+        #[arg(long)]
+        agent: Option<String>,
+        /// Track title (default: derived from the source)
+        #[arg(long)]
+        title: Option<String>,
+        /// 0-100: how hard the distilled style text steers Suno
+        #[arg(long, default_value_t = 65)]
+        style_pct: u64,
+        /// 0-100: Suno's weirdness dial
+        #[arg(long, default_value_t = 50)]
+        weirdness_pct: u64,
+        /// Where the produced tracks land (default: sonus's download dir)
+        #[arg(long)]
+        out_dir: Option<String>,
+        /// Show the distilled prompt and exit WITHOUT spending credits
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Taste loop: record a verdict on a composition (needs taste.write_back)
+    Feedback {
+        /// loved | kept | skipped
+        #[arg(long)]
+        verdict: String,
+        /// The composition's saved fixture (for themes + label)
+        #[arg(long)]
+        fixture: PathBuf,
+    },
     /// Serve the HTTP API (loopback only) — GET /compose?window=7d&format=json|mid|wav|score
     Serve {
         /// Bind address; must be loopback
@@ -125,6 +166,99 @@ fn main() -> Result<()> {
                 ns_synth::render_wav(&piece, &path)?;
                 println!("  wav preview → {}", path.display());
             }
+        }
+        Command::Produce {
+            fixture,
+            window,
+            episode,
+            thread,
+            everything,
+            agent,
+            title,
+            style_pct,
+            weirdness_pct,
+            out_dir,
+            dry_run,
+        } => {
+            let spec = GraphSpec {
+                fixture,
+                window,
+                episode,
+                thread,
+                dream: false,
+                everything,
+                agent,
+            };
+            let (graph, label) = spec.resolve()?;
+            let piece = ns_core::compose(&graph)?;
+            let distilled = ns_sonus::distill(&piece, &graph);
+            println!("style: {}", distilled.style);
+            println!("scene: {}", distilled.description);
+            if dry_run {
+                println!("(dry run — no credits spent)");
+                return Ok(());
+            }
+            let cfg = ns_cerebro::Config::load()?;
+            let opts = ns_sonus::SonusOptions {
+                command: cfg.sonus.command.clone(),
+                args: cfg.sonus.args.clone(),
+                env: cfg.sonus.env.clone(),
+                model: cfg.sonus.model.clone(),
+                timeout_secs: cfg.sonus.timeout_secs,
+                style_pct: style_pct.min(100),
+                weirdness_pct: weirdness_pct.min(100),
+                title: title.unwrap_or_else(|| format!("NeuralSymphony · {label}")),
+                download_dir: out_dir,
+            };
+            let produced = ns_sonus::produce(&opts, &distilled.style)?;
+            if let (Some(b), Some(a)) = (produced.credits_before, produced.credits_after) {
+                println!("credits: {b} → {a} (spent {})", b - a);
+            }
+            println!("task {} · {}", produced.task_id, produced.status);
+            for f in &produced.files {
+                println!("  produced → {f}");
+            }
+        }
+        Command::Feedback { verdict, fixture } => {
+            let cfg = ns_cerebro::Config::load()?;
+            if !cfg.taste.write_back {
+                anyhow::bail!(
+                    "taste write-back is OFF (the default — composing must never pollute a \
+                     cerebro that didn't ask). Enable with [taste] write_back = true in \
+                     ~/.config/neuralsymphony/config.toml"
+                );
+            }
+            let v = ns_cerebro::Verdict::parse(&verdict)
+                .ok_or_else(|| anyhow::anyhow!("verdict must be loved | kept | skipped"))?;
+            let raw = std::fs::read_to_string(&fixture)
+                .with_context(|| format!("reading {}", fixture.display()))?;
+            let graph: ns_core::MemoryGraph = serde_json::from_str(&raw)?;
+            let piece = ns_core::compose(&graph)?;
+            let mut tag_counts: std::collections::BTreeMap<&str, usize> = Default::default();
+            for m in &graph.memories {
+                for t in &m.tags {
+                    *tag_counts.entry(t.as_str()).or_insert(0) += 1;
+                }
+            }
+            let mut themes: Vec<(&str, usize)> = tag_counts.into_iter().collect();
+            themes.sort_by_key(|&(t, c)| (std::cmp::Reverse(c), t));
+            let themes: Vec<String> =
+                themes.into_iter().take(3).map(|(t, _)| t.to_string()).collect();
+            let label = format!("{} memories from {}", graph.memories.len(), fixture.display());
+            let report = ns_cerebro::record_feedback(
+                &cfg.cerebro,
+                piece.mapping_version,
+                v,
+                &label,
+                &themes,
+            )?;
+            println!(
+                "verdict recorded · memory {} · procedure {} · salience {:?} · outcomes {}",
+                report.memory_id,
+                report.procedure_id,
+                report.new_procedure_salience,
+                report.outcomes.unwrap_or_default(),
+            );
         }
         Command::Serve { bind } => serve::run(&bind)?,
         Command::Mcp => mcp::run()?,

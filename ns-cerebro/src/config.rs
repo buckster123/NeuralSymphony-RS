@@ -13,6 +13,43 @@ use crate::CerebroError;
 #[serde(default)]
 pub struct Config {
     pub cerebro: CerebroConfig,
+    pub sonus: SonusConfig,
+    pub taste: TasteConfig,
+}
+
+/// The Dream voice's transport (Sonus-RS MCP). Spends REAL credits when
+/// armed with a key: sonus-mcp reads SUNO_API_KEY from its env (or its
+/// SONUS_ENV_FILE); keyless it stays up and errors honestly on money tools.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SonusConfig {
+    pub command: String,
+    pub args: Vec<String>,
+    pub env: HashMap<String, String>,
+    /// Suno model for produced tracks.
+    pub model: String,
+    /// Seconds to wait for a generation before returning resumable state.
+    pub timeout_secs: u64,
+}
+
+impl Default for SonusConfig {
+    fn default() -> Self {
+        Self {
+            command: "sonus-mcp".into(),
+            args: Vec::new(),
+            env: HashMap::new(),
+            model: "V5".into(),
+            timeout_secs: 600,
+        }
+    }
+}
+
+/// The taste-imprint loop (PRD §4): OFF by default — the product must never
+/// pollute a cerebro that didn't ask for it.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TasteConfig {
+    pub write_back: bool,
 }
 
 /// How to reach the cerebro. **The two-brains trap:** cerebro-mcp resolves

@@ -11,8 +11,9 @@ use ns_core::MemoryGraph;
 use rusqlite::OpenFlags;
 use serde_json::{json, Value};
 
+use ns_mcp::McpClient;
+
 use crate::adapt::{adapt, RawNode};
-use crate::mcp::McpClient;
 use crate::{CerebroConfig, CerebroError};
 
 #[derive(Debug, Clone)]
@@ -45,7 +46,7 @@ pub fn fetch_graph(
         ));
     }
 
-    let mut client = McpClient::spawn(cfg)?;
+    let mut client = McpClient::spawn(&cfg.command, &cfg.args, &cfg.env)?;
 
     // Nodes: export_memories is the one bulk reader that doesn't mutate the
     // brain. Scope note: passing agent_id returns shared ∪ that agent's
@@ -61,6 +62,12 @@ pub fn fetch_graph(
     let mut nodes: BTreeMap<String, ns_core::Memory> = BTreeMap::new();
     let mut thread_of: BTreeMap<String, String> = BTreeMap::new();
     for r in &raw {
+        // Anti-Larsen guard: the taste loop's own write-backs are tagged
+        // ns-internal and never re-enter the composer's input — a memory
+        // feedback loop screeches exactly like an audio one.
+        if r.tags.iter().any(|t| t == "ns-internal") {
+            continue;
+        }
         if let (Some(want), Some(have)) = (agent, r.agent_id.as_deref()) {
             if want != have {
                 continue;

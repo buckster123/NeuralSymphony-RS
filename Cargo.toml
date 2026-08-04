@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["ns-core", "ns-midi", "ns-score", "ns-synth", "ns-cerebro", "ns-cli"]
+members = ["ns-core", "ns-midi", "ns-score", "ns-synth", "ns-mcp", "ns-cerebro", "ns-sonus", "ns-cli"]
 
 [workspace.package]
 version = "0.1.0"

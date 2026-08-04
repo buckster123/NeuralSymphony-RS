@@ -736,6 +736,7 @@ dependencies = [
  "chrono",
  "dirs",
  "ns-core",
+ "ns-mcp",
  "rusqlite",
  "serde",
  "serde_json",
@@ -754,6 +755,7 @@ dependencies = [
  "ns-core",
  "ns-midi",
  "ns-score",
+ "ns-sonus",
  "ns-synth",
  "serde",
  "serde_json",
@@ -765,6 +767,13 @@ name = "ns-core"
 version = "0.1.0"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "ns-mcp"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
@@ -780,6 +789,16 @@ name = "ns-score"
 version = "0.1.0"
 dependencies = [
  "ns-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ns-sonus"
+version = "0.1.0"
+dependencies = [
+ "ns-core",
+ "ns-mcp",
  "serde",
  "serde_json",
 ]

@@ -11,7 +11,26 @@ its original prototype lives in `prototype/`. See **PRD.md** for the real plan, 
 [Enthea-RS](https://github.com/buckster123/enthea-rs) — the visualizer that stops
 guessing, because the same mind wrote the song.
 
-## Status: M2 shipped — it plays, it serves, and it can explain itself
+## Status: M3 shipped — the Dream voice, and an instrument that learns
+
+```sh
+# Dream voice (SPENDS Suno credits; --dry-run shows the prompt free):
+neuralsymphony produce --window 7d --dry-run
+# → style: instrumental, flowing, lydian-bright and major mood, strings-led…
+neuralsymphony produce --window 7d --style-pct 65   # the real thing, via Sonus-RS
+
+# Taste loop (opt-in: [taste] write_back = true, hard-gated by default):
+neuralsymphony feedback --verdict loved --fixture my-week.json
+# → scoped, ns-internal-tagged records in cerebro; the graph drifts,
+#   the mapping stays deterministic. Compose filters its own write-backs
+#   out (anti-Larsen) — the instrument never plays songs about its reviews.
+```
+
+Reference audio (seeding Suno with the Echo rendering itself) is pinned in
+the PRD and blocked upstream — Sonus-RS has no upload transport yet; the
+demand note is filed in its repo.
+
+## Previously: M2 — it plays, it serves, and it can explain itself
 
 ```sh
 # one command, three artifacts: MIDI + instant WAV (pure Rust, no external

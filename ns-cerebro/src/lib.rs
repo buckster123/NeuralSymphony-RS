@@ -15,10 +15,11 @@
 pub mod adapt;
 pub mod config;
 pub mod fetch;
-pub mod mcp;
+pub mod taste;
 
-pub use config::{CerebroConfig, Config};
+pub use config::{CerebroConfig, Config, SonusConfig, TasteConfig};
 pub use fetch::{fetch_graph, Mode};
+pub use taste::{record_feedback, Verdict};
 
 #[derive(Debug)]
 pub enum CerebroError {
@@ -43,3 +44,13 @@ impl std::fmt::Display for CerebroError {
 }
 
 impl std::error::Error for CerebroError {}
+
+impl From<ns_mcp::McpError> for CerebroError {
+    fn from(e: ns_mcp::McpError) -> Self {
+        match e {
+            ns_mcp::McpError::Spawn(s) => CerebroError::Spawn(s),
+            ns_mcp::McpError::Protocol(s) => CerebroError::Protocol(s),
+            ns_mcp::McpError::Tool(s) => CerebroError::Tool(s),
+        }
+    }
+}

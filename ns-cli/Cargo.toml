@@ -15,6 +15,7 @@ ns-midi = { path = "../ns-midi" }
 ns-score = { path = "../ns-score" }
 ns-synth = { path = "../ns-synth" }
 ns-cerebro = { path = "../ns-cerebro" }
+ns-sonus = { path = "../ns-sonus" }
 clap = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
