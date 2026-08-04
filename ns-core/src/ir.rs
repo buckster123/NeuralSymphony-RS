@@ -4,7 +4,9 @@
 
 pub const TICKS_PER_BEAT: u32 = 480;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+use crate::model::MemoryType;
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Piece {
     /// The mapping contract this piece was produced under (e.g. "mapping_v1").
     pub mapping_version: &'static str,
@@ -13,6 +15,43 @@ pub struct Piece {
     /// Stable order: strings, piano, woodwinds, drums — only tracks that
     /// actually carry notes are present.
     pub tracks: Vec<Track>,
+    /// Semantic provenance, indexed by `Note::source`. MIDI rendering
+    /// ignores this entirely (goldens are annotation-blind); the score
+    /// stream is made of it.
+    pub sources: Vec<SourceInfo>,
+    /// Movement boundaries in playback order.
+    pub movements: Vec<MovementInfo>,
+}
+
+/// Why a note exists: which memory, and in what role.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SourceInfo {
+    pub memory_id: String,
+    pub memory_type: MemoryType,
+    pub salience: f64,
+    pub valence: f64,
+    pub mixed: bool,
+    /// The memory plays unaccompanied (degree-0 in the graph).
+    pub isolated: bool,
+    pub episode_id: Option<String>,
+    pub role: NoteRole,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NoteRole {
+    /// The memory's own four-note motif.
+    Motif,
+    /// A neighbor's pitch sustained underneath (voice-leading).
+    Sustain,
+    /// The V→I resolution closing an episode run.
+    Cadence,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MovementInfo {
+    pub start: u32,
+    pub root_offset: u8,
+    pub isolated: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -22,7 +61,8 @@ pub struct Track {
     pub channel: u8,
     /// GM program number; `None` on the percussion channel.
     pub program: Option<u8>,
-    /// Sorted by (start, pitch, dur, velocity) — canonical.
+    /// Sorted by (start, pitch, dur, velocity) — canonical. `source` is the
+    /// final tie-break so equal-sounding notes can't reorder the bytes.
     pub notes: Vec<Note>,
 }
 
@@ -32,6 +72,8 @@ pub struct Note {
     pub pitch: u8,
     pub dur: u32,
     pub velocity: u8,
+    /// Index into `Piece::sources`.
+    pub source: u32,
 }
 
 impl Piece {

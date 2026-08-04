@@ -7,6 +7,6 @@ pub mod ir;
 pub mod map_v1;
 pub mod model;
 
-pub use ir::{Note, Piece, Track};
-pub use map_v1::compose;
+pub use ir::{MovementInfo, Note, NoteRole, Piece, SourceInfo, Track};
+pub use map_v1::{compose, tag_motif};
 pub use model::{GraphError, Memory, MemoryGraph, MemoryType};

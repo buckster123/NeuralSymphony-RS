@@ -11,7 +11,24 @@ its original prototype lives in `prototype/`. See **PRD.md** for the real plan, 
 [Enthea-RS](https://github.com/buckster123/enthea-rs) — the visualizer that stops
 guessing, because the same mind wrote the song.
 
-## Status: M1 shipped — it composes from a living brain
+## Status: M2 shipped — it plays, it serves, and it can explain itself
+
+```sh
+# one command, three artifacts: MIDI + instant WAV (pure Rust, no external
+# synth) + the score_v0 semantic stream:
+neuralsymphony compose --window 7d --out week.mid --wav week.wav --emit-score week.score
+# loopback API (port 7664 — "SONG" on a phone keypad):
+neuralsymphony serve   # GET /compose?window=7d&format=json|mid|wav|score
+# agents: claude mcp add neuralsymphony -- neuralsymphony mcp
+#   → ns_compose, ns_motif_of
+```
+
+`docs/score_v0.md` is the stream contract — the fusion channel where
+Enthea stops inferring and starts *knowing* (palette from valence, drops on
+told cadences, lone particles for isolated memories). Golden-pinned in CI
+like everything else.
+
+## Previously: M1 — it composes from a living brain
 
 ```sh
 cargo build --release

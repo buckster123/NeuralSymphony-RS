@@ -12,8 +12,13 @@ path = "src/main.rs"
 [dependencies]
 ns-core = { path = "../ns-core" }
 ns-midi = { path = "../ns-midi" }
+ns-score = { path = "../ns-score" }
+ns-synth = { path = "../ns-synth" }
 ns-cerebro = { path = "../ns-cerebro" }
 clap = { workspace = true }
 anyhow = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true }

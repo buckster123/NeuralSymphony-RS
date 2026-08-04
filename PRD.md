@@ -110,7 +110,7 @@ graphs, nothing writes into repo dirs at runtime.
 |---|---|---|
 | **M0** | `ns-core` mapping_v1 + MIDI out + CLI compose from a JSON fixture graph | Golden MIDI files in CI; a fixture week renders identically forever |
 | **M1** | Cerebro client + modes (window / episode / thread / dream) | Compose from a live cerebro; the dream-suite morning track |
-| **M2** | fundsp WAV preview + API + MCP + **score-stream emitter** (`score_v0`) | An agent (this one, with its own cerebro) composes and plays back its week; Enthea renders it live from `--score` |
+| **M2** | fundsp WAV preview + API + MCP + **score-stream emitter** (`score_v0`) — *delivered 2026-08-04: ns-synth, `serve` on 127.0.0.1:7664 (loopback enforced), `mcp` (ns_compose, ns_motif_of), `--emit-score` + `docs/score_v0.md`, .score goldens in CI* | An agent (this one, with its own cerebro) composes and plays back its week ✓; Enthea renders it live from `--score` (Enthea-side work next) |
 | **M3** | Sonus bridge (Dream voice) + opt-in taste write-back | A produced track from a memory cluster; feedback visibly re-weights the next composition |
 | **M4** | Live mode (`/ws` + `heat` events from the activation heatmap) + Imaginarium video pairing | The week-in-review music video, generated end to end in the garden; the ambient "state of the apex" screen on the ApexOS kiosk |
 

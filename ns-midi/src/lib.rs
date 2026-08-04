@@ -170,28 +170,31 @@ mod tests {
             bpm,
             ticks_per_beat: 480,
             tracks: vec![Track { name: "piano", channel: 1, program: Some(0), notes }],
+            sources: Vec::new(),
+            movements: Vec::new(),
         }
+    }
+
+    fn note(start: u32, pitch: u8, dur: u32, velocity: u8) -> Note {
+        Note { start, pitch, dur, velocity, source: 0 }
     }
 
     #[test]
     fn zero_bpm_is_an_error_not_a_panic() {
-        let p = piece_with(vec![Note { start: 0, pitch: 60, dur: 480, velocity: 80 }], 0);
+        let p = piece_with(vec![note(0, 60, 480, 80)], 0);
         assert!(matches!(render(&p), Err(RenderError::InvalidPiece(_))));
     }
 
     #[test]
     fn out_of_range_pitch_is_an_error_not_a_masked_note() {
-        let p = piece_with(vec![Note { start: 0, pitch: 200, dur: 480, velocity: 80 }], 96);
+        let p = piece_with(vec![note(0, 200, 480, 80)], 96);
         assert!(matches!(render(&p), Err(RenderError::InvalidPiece(_))));
     }
 
     #[test]
     fn oversized_delta_is_an_error_not_a_folded_note() {
         let p = piece_with(
-            vec![
-                Note { start: 0, pitch: 60, dur: 480, velocity: 80 },
-                Note { start: MAX_DELTA + 1000, pitch: 62, dur: 480, velocity: 80 },
-            ],
+            vec![note(0, 60, 480, 80), note(MAX_DELTA + 1000, 62, 480, 80)],
             96,
         );
         assert!(matches!(render(&p), Err(RenderError::DeltaTooLarge(_))));

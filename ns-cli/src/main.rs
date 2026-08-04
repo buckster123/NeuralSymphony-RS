@@ -1,9 +1,12 @@
+mod mcp;
+mod serve;
+mod source;
+
 use std::path::PathBuf;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use clap::{ArgGroup, Parser, Subcommand};
-use ns_cerebro::Mode;
-use ns_core::MemoryGraph;
+use source::GraphSpec;
 
 #[derive(Parser)]
 #[command(
@@ -44,32 +47,28 @@ enum Command {
         #[arg(long)]
         agent: Option<String>,
         /// Also write the fetched graph as a fixture (structural fields
-        /// only — no memory content ever leaves cerebro), so a live moment
-        /// becomes replayable and golden-testable
+        /// only — no memory content ever leaves cerebro)
         #[arg(long)]
         save_fixture: Option<PathBuf>,
         /// Where to write the MIDI file
         #[arg(long)]
         out: PathBuf,
+        /// Also render an instant WAV preview (pure Rust, no fluidsynth)
+        #[arg(long)]
+        wav: Option<PathBuf>,
+        /// Also emit the score_v0 semantic stream (.score NDJSON — what
+        /// Enthea listens to)
+        #[arg(long)]
+        emit_score: Option<PathBuf>,
     },
-}
-
-/// "7d" / "36h" / "2w" / "90m" → seconds.
-fn parse_window(s: &str) -> Result<i64> {
-    let s = s.trim();
-    let (num, unit) = s.split_at(s.len().saturating_sub(1));
-    let n: i64 = num.parse().with_context(|| format!("bad window: {s:?} (try 7d, 36h, 2w)"))?;
-    if n <= 0 {
-        bail!("window must be positive: {s:?}");
-    }
-    let secs = match unit {
-        "m" => n * 60,
-        "h" => n * 3_600,
-        "d" => n * 86_400,
-        "w" => n * 7 * 86_400,
-        _ => bail!("bad window unit in {s:?} (m, h, d, or w)"),
-    };
-    Ok(secs)
+    /// Serve the HTTP API (loopback only) — GET /compose?window=7d&format=json|mid|wav|score
+    Serve {
+        /// Bind address; must be loopback
+        #[arg(long, default_value = serve::DEFAULT_BIND)]
+        bind: String,
+    },
+    /// Serve the MCP stdio server (for agents: claude mcp add neuralsymphony -- neuralsymphony mcp)
+    Mcp,
 }
 
 fn main() -> Result<()> {
@@ -85,37 +84,11 @@ fn main() -> Result<()> {
             agent,
             save_fixture,
             out,
+            wav,
+            emit_score,
         } => {
-            let (graph, source) = if let Some(path) = fixture {
-                let raw = std::fs::read_to_string(&path)
-                    .with_context(|| format!("reading {}", path.display()))?;
-                let graph: MemoryGraph = serde_json::from_str(&raw)
-                    .with_context(|| format!("parsing {}", path.display()))?;
-                (graph, format!("fixture {}", path.display()))
-            } else {
-                let mode = if let Some(w) = &window {
-                    let since = chrono::Utc::now().timestamp() - parse_window(w)?;
-                    Mode::Window { since_unix: since }
-                } else if let Some(id) = episode {
-                    Mode::Episode { id }
-                } else if let Some(id) = thread {
-                    Mode::Thread { id }
-                } else if dream {
-                    Mode::Dream
-                } else {
-                    debug_assert!(everything);
-                    Mode::All
-                };
-                let cfg = ns_cerebro::Config::load()?;
-                let graph = ns_cerebro::fetch_graph(&cfg.cerebro, &mode, agent.as_deref())?;
-                let label = match (&window, &agent) {
-                    (Some(w), Some(a)) => format!("live cerebro · {w} · agent {a}"),
-                    (Some(w), None) => format!("live cerebro · {w}"),
-                    (None, Some(a)) => format!("live cerebro · agent {a}"),
-                    (None, None) => "live cerebro".to_string(),
-                };
-                (graph, label)
-            };
+            let spec = GraphSpec { fixture, window, episode, thread, dream, everything, agent };
+            let (graph, label) = spec.resolve()?;
 
             if let Some(path) = &save_fixture {
                 std::fs::write(path, serde_json::to_string_pretty(&graph)?)
@@ -129,7 +102,7 @@ fn main() -> Result<()> {
             println!(
                 "{} · {} · {} memories → {} notes on {} tracks · {:.1}s @ {} bpm → {}",
                 piece.mapping_version,
-                source,
+                label,
                 graph.memories.len(),
                 piece.note_count(),
                 piece.tracks.len(),
@@ -143,14 +116,25 @@ fn main() -> Result<()> {
             if let Some(path) = save_fixture {
                 println!("  fixture saved (structure only, no content) → {}", path.display());
             }
+            if let Some(path) = emit_score {
+                std::fs::write(&path, ns_score::to_ndjson(&piece, &spec.mode_label()))
+                    .with_context(|| format!("writing {}", path.display()))?;
+                println!("  score_v0 stream → {}", path.display());
+            }
+            if let Some(path) = wav {
+                ns_synth::render_wav(&piece, &path)?;
+                println!("  wav preview → {}", path.display());
+            }
         }
+        Command::Serve { bind } => serve::run(&bind)?,
+        Command::Mcp => mcp::run()?,
     }
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::parse_window;
+    use crate::source::parse_window;
 
     #[test]
     fn windows_parse() {

@@ -53,6 +53,25 @@ fn golden_week_01() {
 }
 
 #[test]
+fn golden_score_week_01() {
+    // The score stream is a versioned contract exactly like the MIDI bytes:
+    // score_v0 over mapping_v1 renders this fixture identically forever.
+    let piece = ns_core::compose(&fixture("week-01.json")).expect("compose");
+    let ndjson = ns_score::to_ndjson(&piece, "timeline");
+    let golden_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/goldens")
+        .join("week-01.score");
+    if std::env::var_os("UPDATE_GOLDENS").is_some() {
+        std::fs::write(&golden_path, &ndjson).expect("bless score golden");
+        return;
+    }
+    let golden = std::fs::read_to_string(&golden_path).unwrap_or_else(|e| {
+        panic!("reading {} ({e}) — bless with UPDATE_GOLDENS=1", golden_path.display())
+    });
+    assert_eq!(ndjson, golden, "score_v0 stream diverged — version bump required");
+}
+
+#[test]
 fn golden_minimal() {
     check_golden("minimal.json", "minimal.mid");
 }

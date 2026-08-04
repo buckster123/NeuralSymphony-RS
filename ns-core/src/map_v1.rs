@@ -8,7 +8,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::ir::{Note, Piece, Track, TICKS_PER_BEAT};
+use crate::ir::{MovementInfo, Note, NoteRole, Piece, SourceInfo, Track, TICKS_PER_BEAT};
 use crate::model::{GraphError, Memory, MemoryGraph, MemoryType};
 
 pub const MAPPING_VERSION: &str = "mapping_v1";
@@ -172,6 +172,19 @@ fn motif_for(mem: &Memory, root_offset: u8) -> Motif {
     Motif { notes, last_pitch }
 }
 
+/// The leitmotif a tag would seed — for introspection surfaces (MCP's
+/// ns_motif_of). Degrees are scale positions; the mode is chosen per
+/// memory at compose time, so the same contour colors differently.
+pub fn tag_motif(tag: &str) -> ([usize; 4], [u32; 4]) {
+    let seed = fnv1a64(tag.as_bytes());
+    let rhythm = RHYTHMS[((seed >> 16) & 0x3) as usize];
+    let mut degrees = [0usize; 4];
+    for (i, d) in degrees.iter_mut().enumerate() {
+        *d = (((seed >> (4 * i)) & 0xF) as usize) % 7;
+    }
+    (degrees, rhythm)
+}
+
 /// Compose a piece from a memory graph under mapping_v1 (timeline mode).
 ///
 /// Pure and total for valid graphs: same graph in, byte-identical IR out.
@@ -243,6 +256,19 @@ pub fn compose(graph: &MemoryGraph) -> Result<Piece, GraphError> {
         track_shell(WOODWINDS),
         track_shell(DRUMS),
     ];
+    let mut sources: Vec<SourceInfo> = Vec::new();
+    let mut movement_infos: Vec<MovementInfo> = Vec::new();
+
+    let source_of = |mem: &Memory, isolated: bool, role: NoteRole| SourceInfo {
+        memory_id: mem.id.clone(),
+        memory_type: mem.memory_type,
+        salience: mem.salience.clamp(0.0, 1.0),
+        valence: mem.emotional_valence,
+        mixed: mem.valence_mixed,
+        isolated,
+        episode_id: mem.episode_id.clone(),
+        role,
+    };
 
     let mut cursor = 0u32;
     for (mv_idx, members) in movements.iter().enumerate() {
@@ -250,6 +276,7 @@ pub fn compose(graph: &MemoryGraph) -> Result<Piece, GraphError> {
         #[allow(clippy::cast_possible_truncation)]
         let root_offset = ((mv_idx * 5) % 12) as u8;
         let isolated = members.len() == 1 && adj[members[0]].is_empty();
+        movement_infos.push(MovementInfo { start: cursor, root_offset, isolated });
 
         for (pos, &i) in members.iter().enumerate() {
             let mem = order[i];
@@ -259,12 +286,16 @@ pub fn compose(graph: &MemoryGraph) -> Result<Piece, GraphError> {
 
             let motif = motif_for(mem, root_offset);
             let slot = family(mem.memory_type).slot;
+            #[allow(clippy::cast_possible_truncation)]
+            let src = sources.len() as u32;
+            sources.push(source_of(mem, isolated, NoteRole::Motif));
             for &(onset, dur, pitch, vel) in &motif.notes {
                 tracks[slot].notes.push(Note {
                     start: cursor + onset,
                     pitch,
                     dur,
                     velocity: vel,
+                    source: src,
                 });
             }
 
@@ -292,11 +323,15 @@ pub fn compose(graph: &MemoryGraph) -> Result<Piece, GraphError> {
                         .round() as i16
                         - 20)
                         .clamp(20, 127) as u8;
+                    #[allow(clippy::cast_possible_truncation)]
+                    let src = sources.len() as u32;
+                    sources.push(source_of(prev_mem, false, NoteRole::Sustain));
                     tracks[family(prev_mem.memory_type).slot].notes.push(Note {
                         start: cursor,
                         pitch: prev_motif.last_pitch,
                         dur: BAR,
                         velocity: sustain_vel,
+                        source: src,
                     });
                 }
             }
@@ -319,17 +354,22 @@ pub fn compose(graph: &MemoryGraph) -> Result<Piece, GraphError> {
                     scale_for(mem.emotional_valence, mem.emotional_intensity, mem.valence_mixed);
                 let dominant = 60 + root_offset + scale[4];
                 let tonic = 60 + root_offset;
+                #[allow(clippy::cast_possible_truncation)]
+                let src = sources.len() as u32;
+                sources.push(source_of(mem, isolated, NoteRole::Cadence));
                 tracks[PIANO].notes.push(Note {
                     start: cursor,
                     pitch: dominant,
                     dur: HALF_BAR,
                     velocity: 70,
+                    source: src,
                 });
                 tracks[PIANO].notes.push(Note {
                     start: cursor + HALF_BAR,
                     pitch: tonic,
                     dur: HALF_BAR,
                     velocity: 70,
+                    source: src,
                 });
                 cursor = advance(cursor, BAR)?;
             }
@@ -353,6 +393,8 @@ pub fn compose(graph: &MemoryGraph) -> Result<Piece, GraphError> {
         bpm: BPM,
         ticks_per_beat: TICKS_PER_BEAT,
         tracks: out,
+        sources,
+        movements: movement_infos,
     })
 }
 

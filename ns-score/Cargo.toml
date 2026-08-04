@@ -1,0 +1,11 @@
+[package]
+name = "ns-score"
+description = "score_v0: the semantic score stream — NDJSON events that tell a visualizer what the music MEANS. MIT on purpose: any renderer, any license, may consume or implement this."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ns-core = { path = "../ns-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }

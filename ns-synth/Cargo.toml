@@ -1,0 +1,10 @@
+[package]
+name = "ns-synth"
+description = "NeuralSymphony's instant WAV preview: pure-Rust synthesis via fundsp. A sketch by contract — the Dream voice is the produced artifact."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ns-core = { path = "../ns-core" }
+fundsp = { workspace = true }
