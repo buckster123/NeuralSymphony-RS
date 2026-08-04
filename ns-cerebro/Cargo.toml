@@ -1,0 +1,15 @@
+[package]
+name = "ns-cerebro"
+description = "NeuralSymphony's cerebro client: MCP stdio for nodes/episodes, read-only SQLite for edges. Never calls recall — reading must not rewrite the brain."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ns-core = { path = "../ns-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+dirs = { workspace = true }
+chrono = { workspace = true }
+rusqlite = { workspace = true }

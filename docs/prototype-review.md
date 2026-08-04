@@ -42,11 +42,15 @@ the harness's name, not yet its own.
   the backend POSTs `/compose`, and the vite proxy has no path rewrite —
   wrong method *and* wrong path.
 - **Interfaces imagined, not read**: `list_memories` isn't a cerebro tool;
-  `affective/prospective/schematic` aren't cerebro memory types; the MCP
-  result is treated as a plain dict; `command: "~/.local/bin/cerebro-mcp"` —
-  the tilde never expands without a shell. `requirements.txt` ships redis,
-  numpy, scipy, jinja2 (unused) and omits `mcp` — the one package the
-  client imports.
+  the MCP result is treated as a plain dict; `command:
+  "~/.local/bin/cerebro-mcp"` — the tilde never expands without a shell.
+  `requirements.txt` ships redis, numpy, scipy, jinja2 (unused) and omits
+  `mcp` — the one package the client imports.
+  *Errata 2026-08-04: this review originally listed
+  `affective/prospective/schematic` as hallucinated memory types. They are
+  real (`cerebro/src/types.rs:29-38`) — the 122B knew the schema better
+  than its reviewer. Corrected during the M1 source scout; the reviewer
+  regrets the slander.*
 - Both servers bind `0.0.0.0` — the garden invariant it most needed to
   absorb. The PRD's loopback-default corrects it.
 

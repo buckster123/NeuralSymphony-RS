@@ -11,17 +11,28 @@ its original prototype lives in `prototype/`. See **PRD.md** for the real plan, 
 [Enthea-RS](https://github.com/buckster123/enthea-rs) — the visualizer that stops
 guessing, because the same mind wrote the song.
 
-## Status: M0 shipped — the Echo voice exists
+## Status: M1 shipped — it composes from a living brain
 
 ```sh
 cargo build --release
+# hermetic (no cerebro needed):
 ./target/release/neuralsymphony compose --fixture fixtures/week-01.json --out week.mid
-# mapping_v1 · 14 memories → 67 notes on 4 tracks · 45.0s @ 96 bpm
+# live (config: ~/.config/neuralsymphony/config.toml → your cerebro-mcp):
+./target/release/neuralsymphony compose --window 7d --out my-week.mid
+# mapping_v1 · live cerebro · 7d · 129 memories → 521 notes on 4 tracks · 543.8s @ 96 bpm
 ```
 
 - `ns-core` — mapping_v1, pure and deterministic (docs/mapping_v1.md has the numbers)
 - `ns-midi` — byte-deterministic SMF rendering (midly)
-- `ns-cli` — binary `neuralsymphony`, composes from JSON fixture graphs
+- `ns-cerebro` — the live client: MCP stdio for nodes/episodes, read-only
+  SQLite for the links table (cerebro exposes no edge API), and **never
+  `recall`** — reading a brain must not rewrite its activation state
+- `ns-cli` — binary `neuralsymphony`; modes: `--fixture`, `--window 7d`,
+  `--episode <id>`, `--thread <id>`, `--everything`, `--agent <id>`, plus
+  `--save-fixture` (structure only, no memory content — a live moment
+  becomes a replayable, shareable fixture)
 - Goldens in CI: the fixture week renders identically forever; input order is meaningless
 
-Next: **M1** — the live cerebro client (window / episode / thread / dream modes).
+Next: **M2** — fundsp WAV preview, HTTP API + MCP, and the `score_v0`
+stream that lets [Enthea-RS](https://github.com/buckster123/enthea-rs)
+stop guessing.

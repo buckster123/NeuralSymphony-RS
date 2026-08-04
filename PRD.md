@@ -33,7 +33,7 @@ acceptable; the ceiling is an instrument.
 | Voice | What | Properties |
 |---|---|---|
 | **Echo** | Deterministic graph → MIDI mapping, rendered locally | Pure function; same memories → same piece, byte-identical. Auditable, hermetic, offline, no external AI. *The music made from AI echoes, not by AIs.* |
-| **Dream** | The mapping's structure distilled into a prompt for Suno via **Sonus-RS** | Full produced tracks; many-AIs-as-orchestra. Requires network + credits; always labelled as generated. |
+| **Dream** | The mapping's structure distilled into a prompt for Suno via **Sonus-RS** | Full produced tracks; many-AIs-as-orchestra. Requires network + credits; always labelled as generated. *Seed (Andre, 2026-08-04, after hearing the first Echo render): also pass the Echo rendering itself as reference audio, so the produced track inherits the graph's actual harmony — not just a text description of it.* |
 
 The Echo voice is the identity of the product and the only lane the MVP must perfect.
 The Dream voice rides on infrastructure that already exists (`tools/Sonus-RS`).
@@ -89,6 +89,15 @@ provisioned sibling.
   versioned semantic **score stream** (`score_v0`, NDJSON over socket / `.score`
   files) emitted at M2 — see `docs/ideas/enthea-fusion.md`. The stream crosses a
   process boundary, so licenses stay put on both sides.*
+  *Amendment 2026-08-04 (M1, source-verified): cerebro transport is **MCP
+  stdio + read-only SQLite for the links table** — not REST as written above.
+  REST is token-gated, has no bulk export, and its recall routes MUTATE
+  activation state (as does MCP `recall` — the client uses `export_memories`
+  only; a composer must never rewrite the brain it listens to). Cerebro's
+  `layer` is consolidation state, not kind — instruments map from
+  `memory_type` alone. Dream mode is blocked upstream: dream reports carry
+  phase counts, no cluster membership; it errors honestly until cerebro
+  exposes membership.*
 
 Rust workspace: `ns-core` (mapping, pure, no I/O), `ns-midi`, `ns-synth` (fundsp),
 `ns-cerebro` (client), `ns-sonus` (bridge), `ns-cli` (binary: CLI+MCP+API). House rules

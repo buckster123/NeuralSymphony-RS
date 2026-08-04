@@ -1,0 +1,16 @@
+# NeuralSymphony config — copy to ~/.config/neuralsymphony/config.toml
+# Everything is optional; defaults shown.
+
+[cerebro]
+command = "cerebro-mcp"        # PATH-resolved or absolute
+args = []
+export_limit = 100000          # export_memories has no pagination upstream
+# db_path = "/explicit/path/to/cerebro.db"   # default: $CEREBRO_DATA_DIR/cerebro.db
+
+# THE TWO-BRAINS TRAP: cerebro-mcp defaults its data dir to ~/.cerebro-cortex,
+# but your live brain may well live elsewhere (a machine can carry a stale
+# twin without noticing). Point CEREBRO_DATA_DIR at the brain you mean —
+# check where your agent harness's cerebro MCP registration points.
+[cerebro.env]
+# CEREBRO_DATA_DIR = "/path/to/live/cerebro/data"
+# FASTEMBED_CACHE_DIR = "/path/to/.fastembed_cache"

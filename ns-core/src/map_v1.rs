@@ -67,10 +67,15 @@ struct Family {
 fn family(t: MemoryType) -> Family {
     // PRD §3: episodic → strings (narrative lines), semantic → piano
     // (chordal statements), procedural → percussion, working → woodwinds.
+    // Cerebro's further types join the nearest family: affective rides the
+    // narrative strings, prospective the future-facing woodwinds, schematic
+    // the structural piano.
     match t {
-        MemoryType::Episodic => Family { slot: STRINGS, base_note: 48 },
-        MemoryType::Semantic => Family { slot: PIANO, base_note: 60 },
-        MemoryType::Working => Family { slot: WOODWINDS, base_note: 72 },
+        MemoryType::Episodic | MemoryType::Affective => Family { slot: STRINGS, base_note: 48 },
+        MemoryType::Semantic | MemoryType::Schematic => Family { slot: PIANO, base_note: 60 },
+        MemoryType::Working | MemoryType::Prospective => {
+            Family { slot: WOODWINDS, base_note: 72 }
+        }
         MemoryType::Procedural => Family { slot: DRUMS, base_note: 0 },
     }
 }
@@ -94,8 +99,8 @@ fn fnv1a64(bytes: &[u8]) -> u64 {
     h
 }
 
-fn scale_for(valence: f64, intensity: f64) -> (&'static [u8; 7], bool) {
-    let sus = valence.abs() < 0.15 && intensity > 0.6;
+fn scale_for(valence: f64, intensity: f64, mixed: bool) -> (&'static [u8; 7], bool) {
+    let sus = mixed || (valence.abs() < 0.15 && intensity > 0.6);
     if sus {
         return (&DORIAN, true);
     }
@@ -130,7 +135,8 @@ fn motif_for(mem: &Memory, root_offset: u8) -> Motif {
         None => fnv1a64(mem.id.as_bytes()),
     };
 
-    let (scale, sus) = scale_for(mem.emotional_valence, mem.emotional_intensity);
+    let (scale, sus) =
+        scale_for(mem.emotional_valence, mem.emotional_intensity, mem.valence_mixed);
     let rhythm = &RHYTHMS[((seed >> 16) & 0x3) as usize];
     let fam = family(mem.memory_type);
     let drums = fam.slot == DRUMS;
@@ -309,7 +315,8 @@ pub fn compose(graph: &MemoryGraph) -> Result<Piece, GraphError> {
                 (None, _) => false,
             };
             if run_ends {
-                let (scale, _) = scale_for(mem.emotional_valence, mem.emotional_intensity);
+                let (scale, _) =
+                    scale_for(mem.emotional_valence, mem.emotional_intensity, mem.valence_mixed);
                 let dominant = 60 + root_offset + scale[4];
                 let tonic = 60 + root_offset;
                 tracks[PIANO].notes.push(Note {
@@ -371,6 +378,7 @@ mod tests {
             salience: 0.5,
             emotional_valence: 0.0,
             emotional_intensity: 0.0,
+            valence_mixed: false,
             created_at: t,
             tags: vec![],
             links: links.iter().map(|s| (*s).into()).collect(),

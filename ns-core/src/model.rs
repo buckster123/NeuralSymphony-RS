@@ -10,7 +10,15 @@ pub enum MemoryType {
     Episodic,
     Semantic,
     Procedural,
+    /// In cerebro "working" is a memory *layer* (consolidation state), not a
+    /// type — the adapter maps by type only, so this variant serves fixtures
+    /// and any future cerebro that grows a genuine working type.
     Working,
+    /// Cerebro's three further types (yes, they're real — types.rs:29-38;
+    /// the 122B's prototype had them right all along).
+    Affective,
+    Prospective,
+    Schematic,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,6 +33,10 @@ pub struct Memory {
     /// 0.0..=1.0
     #[serde(default)]
     pub emotional_intensity: f64,
+    /// Cerebro's valence is categorical; `mixed` doesn't fit a signed float,
+    /// so it arrives as this flag and forces the suspension treatment.
+    #[serde(default)]
+    pub valence_mixed: bool,
     /// Unix seconds. With `id`, the canonical sort key.
     pub created_at: i64,
     #[serde(default)]
